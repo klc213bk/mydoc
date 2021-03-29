@@ -1,0 +1,8 @@
+## list topics
+./bin/kafka-topics.sh --list --zookeeper localhost:2181
+
+## create topic
+./bin/kafka-topics.sh --create --zookeeper localhost:2181 --topic t.stake.holder --partitions 1  --replication-factor 1
+
+## console consumer
+./bin/kafka-console-consumer.sh --topic t.stake.holder --bootstrap-server localhost:9092

@@ -1,0 +1,5 @@
+$./sqlline.sh --verbose=true -u jdbc:ignite:thin://127.0.0.1/
+
+>!tables
+
+>!run xxx.sql

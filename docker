@@ -2,6 +2,30 @@ $ sudo dockerd &
 
 $ sudo docker run hello-world
 
+# To create the docker group and add your user
+$ sudo groupadd docker
+$ sudo usermod -aG docker $USER
+
+$ man docker
+$ man docker ps
+
+$ docker version
+
+$ docker search --limit 5 alpine
+
 $ docker image ls
 
-$ docker image pull alpine
+$ docker image pull [OPTIONS] NAME[:TAG|@DIGEST]
+
+$ docker image rm centos:5
+
+# create Dockerfile
+$ docker image build -t tagname .
+$ docker run [OPTIONS] IMAGE [COMMAND] [ARG..]
+$ docker container run [OPTIONS] IMAGE [COMMAND] [ARG..]
+$ docker container run --name mycontainer sampleimage
+
+
+# list containers
+$ docker container ls [OPTIONS]
+$ docker container ls -a

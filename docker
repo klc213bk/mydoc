@@ -1,0 +1,3 @@
+$ sudo dockerd &
+#or
+$sudo systemctl enable

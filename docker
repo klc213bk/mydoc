@@ -12,8 +12,10 @@ $ man docker ps
 $ docker version
 
 $ docker search --limit 5 alpine
+$ docker search alpine --filter "is-official=true"
 
-$ docker image pull [OPTIONS] NAME[:TAG|@DIGEST]
+$ docker image pull [OPTIONS] <repository>:<tag>
+e.g. $ docker image pull nigelpoluton/tu-demo:v2
 
 $ docker image rm centos:5
 

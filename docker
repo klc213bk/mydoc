@@ -21,11 +21,21 @@ $ docker image rm centos:5
 
 # create Dockerfile
 $ docker image build -t tagname .
+
 $ docker run [OPTIONS] IMAGE [COMMAND] [ARG..]
 $ docker container run [OPTIONS] IMAGE [COMMAND] [ARG..]
-$ docker container run --name mycontainer sampleimage
+$ docker container run --name mycontainer <sampleimage>
+ex. docker container run it centos:latest /bin/bash
 
 
 # list containers
 $ docker container ls [OPTIONS]
 $ docker container ls -a
+
+# list process inside container
+$ ps -elf
+
+# Press Ctrl-PQ to exit the container without terminate 
+
+# attach to running continers
+$ docker container exec -it <container name>

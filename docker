@@ -13,20 +13,22 @@ $ docker version
 
 $ docker search --limit 5 alpine
 
-$ docker image ls
-
 $ docker image pull [OPTIONS] NAME[:TAG|@DIGEST]
 
 $ docker image rm centos:5
 
 # create Dockerfile
-$ docker image build -t tagname .
+$ docker image build -t test:latest .
+
+$ docker image ls
+
+
 
 $ docker run [OPTIONS] IMAGE [COMMAND] [ARG..]
 $ docker container run [OPTIONS] IMAGE [COMMAND] [ARG..]
 $ docker container run --name mycontainer <sampleimage>
 ex. docker container run it centos:latest /bin/bash
-
+ex. docker container run -d --name web1 --publish 8080:8080 test:latest
 
 # list containers
 $ docker container ls [OPTIONS]

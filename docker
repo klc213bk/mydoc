@@ -36,6 +36,13 @@ $ docker container ls -a
 $ ps -elf
 
 # Press Ctrl-PQ to exit the container without terminate 
+# stop container
+$docker contaner stop <container name>
+
+# remove container
+$ docker container rm <container name>
 
 # attach to running continers
-$ docker container exec -it <container name>
+$ docker container exec -it <container name> bash
+
+

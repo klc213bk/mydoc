@@ -55,4 +55,5 @@ $ docker container rm <container name>
 # attach to running continers
 $ docker container exec -it <container name> bash
 
-
+# logs
+$ docker logs <container name>

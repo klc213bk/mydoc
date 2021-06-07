@@ -46,6 +46,9 @@ $ ps -elf
 # stop container
 $docker contaner stop <container name>
 
+# restart container
+$ docker container <container name>
+
 # remove container
 $ docker container rm <container name>
 

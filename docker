@@ -32,7 +32,7 @@ $ docker image ls
 $ docker run [OPTIONS] IMAGE [COMMAND] [ARG..]
 $ docker container run [OPTIONS] IMAGE [COMMAND] [ARG..]
 $ docker container run --name mycontainer <sampleimage>
-ex. docker container run -it --name partycontact partycontact:latest /bin/bash
+ex. docker container run -p 8080:8080 -it --name partycontact partycontact:latest /bin/bash
 ex. docker container run -d --name web1 --publish 8080:8080 test:latest
 
 # list containers

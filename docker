@@ -1,3 +1,6 @@
+# crete and edit /etc/docker/daemon.json
+# edit /etc/hosts
+
 $ sudo dockerd &
 
 $ sudo docker run hello-world
@@ -20,7 +23,7 @@ e.g. $ docker image pull nigelpoluton/tu-demo:v2
 $ docker image rm centos:5
 
 # create Dockerfile
-$ docker image build -t test:latest .
+$ docker image build --no-cache -t test:latest .
 
 $ docker image ls
 

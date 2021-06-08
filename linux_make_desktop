@@ -1,0 +1,11 @@
+cd /usr/share/applications
+sudo gedit ./sqldeveloper.desktop
+
+
+[Desktop Entry]
+Name=SQL Developer
+Comment=Oracle SQL Developer
+GenericName=SQL Developer for Linux
+Exec=/opt/sqldeveloper/sqldeveloper.sh &
+Type=Application
+Categories=Developer;

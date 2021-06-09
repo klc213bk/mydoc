@@ -1,3 +1,8 @@
+#for redhat 8 podman, for docker, use other similar
+# edit /etc/containers/registries.conf
+# edit [registries.insecure]
+# registries = ['artifact:5900']
+
 # crete and edit /etc/docker/daemon.json
 # edit /etc/hosts
 

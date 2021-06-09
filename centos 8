@@ -1,0 +1,173 @@
+Simply record the scripts to setup CentOS 8.
+
+Putty Settings:
+
+    Install Font Noto Mono for Powerline: https://github.com/powerline/fonts/tree/master/NotoMono
+    Change the font of PuTTy to Noto Mono for Powerline.
+    (optional) Modify the resolution in Hyper-V VM: sudo grubby --update-kernel=ALL --args="video=hyperv_fb:2560x1440"
+
+A. Setup zsh / SSH-keys
+
+# install zsh/oh-my-zsh
+sudo yum install zsh -y
+sh -c "$(wget -O- https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+# install powerlevel9k theme
+git clone https://github.com/bhilburn/powerlevel9k.git ~/.oh-my-zsh/custom/themes/powerlevel9k
+sed -i 's~ZSH_THEME=.*~ZSH_THEME="powerlevel9k/powerlevel9k"~g' ~/.zshrc
+
+# install awesome-terminal fonts
+git clone https://github.com/gabrielelana/awesome-terminal-fonts.git
+cd awesome-terminal-fonts
+mv build ~/.fonts
+fc-cache -fv ~/.fonts
+echo 'POWERLEVEL9K_MODE="awesome-fontconfig"' >> ~/.zshrc
+echo 'source ~/.fonts/*.sh' >> ~/.zshrc
+
+# install Plug-ins of zsh
+## zsh-syntax-highlighting
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+sed -i 's/^plugins=(/&zsh-syntax-highlighting /' ~/.zshrc
+## zsh-autosuggestions
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+sed -i 's/^plugins=(/&zsh-autosuggestions /' ~/.zshrc
+
+# SSH-key
+ssh-keygen -t rsa -P "" -f ~/.ssh/id_rsa
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+chmod 644  ~/.ssh/authorized_keys
+
+B. Install JupyterLab / JupyterHub
+
+sudo yum install npm -y
+sudo npm install -g configurable-http-proxy
+sudo pip3 install --upgrade pip
+sudo mv /usr/local/bin/pip3* /usr/bin
+sudo rm /usr/local/bin/pip
+sudo pip3 install jupyterlab jupyterhub
+sudo /usr/local/bin/jupyter labextension install @jupyterlab/hub-extension
+sudo ln -s /usr/local/bin/jupyterhub-singleuser /usr/bin/jupyterhub-singleuser
+sudo ln -s /usr/local/bin/jupyter-labhub /usr/bin/jupyter-labhub
+
+sudo mkdir /jupyter
+cd /jupyter
+sudo /usr/local/bin/jupyterhub --generate-config
+
+sudo sed -i 's~#c.JupyterHub.bind_url.*~c.JupyterHub.bind_url="http://:8000/jupyter"~g' /jupyter/jupyterhub_config.py
+sudo sed -i 's~#c.JupyterHub.data_files_path.*~c.JupyterHub.data_files_path="/usr/local/share/jupyterhub"~g' /jupyter/jupyterhub_config.py
+sudo sed -i 's~#c.JupyterHub.config_file.*~c.JupyterHub.config_file="/jupyter/jupyterhub_config.py"~g' /jupyter/jupyterhub_config.py
+sudo sed -i 's~#c.JupyterHub.db_url.*~c.JupyterHub.db_url="sqlite:////jupyter/jupyterhub.sqlite"~g' /jupyter/jupyterhub_config.py
+sudo sed -i 's~#c.JupyterHub.cookie_secret_file.*~c.JupyterHub.cookie_secret_file="/jupyter/jupyterhub_cookie_secret"~g' /jupyter/jupyterhub_config.py
+sudo sed -i 's~#c.Spawner.default_url.*~c.Spawner.default_url = "/lab"~g' /jupyter/jupyterhub_config.py
+
+sudo tee /etc/systemd/system/jupyterhub.service << EOF
+[Unit]
+Description=Jupyterhub
+After=syslog.target network.target
+
+[Service]
+User=root
+Environment="PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+ExecStart=/usr/local/bin/jupyterhub -f /jupyter/jupyterhub_config.py
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl enable jupyterhub
+sudo systemctl start jupyterhub
+
+sudo setsebool -P httpd_can_network_connect 1
+sudo setsebool -P httpd_can_network_relay 1
+sudo firewall-cmd --zone=public --permanent --add-service=http
+sudo firewall-cmd --zone=public --permanent --add-service=https
+sudo firewall-cmd --reload
+
+Remaining setting refer to Reverse Proxy for JupyterHub and Rstudio Server
+
+C. Install R / RStudio Server
+
+wget https://download2.rstudio.org/server/fedora28/x86_64/rstudio-server-rhel-1.2.5033-x86_64.rpm
+sudo yum install rstudio-server-rhel-1.2.5033-x86_64.rpm -y
+
+sudo yum install epel-release -y
+sudo yum config-manager --set-enabled PowerTools
+sudo yum install gcc-c++ gcc-gfortran openssl-devel libxml2-devel tcl-devel tk-devel libtiff-devel \
+  libjpeg-turbo-devel libpng-devel cairo-devel  libicu-devel openssl-devel libcurl-devel freeglut \
+  readline-devel cyrus-sasl-devel texinfo texinfo-tex texlive texlive-xetex pango-devel libquadmath-devel \
+  pcre-devel libX11-devel libXmu-devel libXt-devel pigz java-1.8.0-openjdk-devel xorg-x11-server-Xvfb -y
+
+wget https://raw.githubusercontent.com/google/fonts/master/ofl/inconsolata/Inconsolata-Regular.ttf
+wget https://raw.githubusercontent.com/google/fonts/master/ofl/inconsolata/Inconsolata-Bold.ttf
+sudo mv Inconsolata-Regular.ttf Inconsolata-Bold.ttf /usr/share/fonts
+sudo fc-cache /usr/share/fonts
+
+wget -q http://mirrors.ctan.org/install/fonts/inconsolata.tds.zip
+mkdir inconsolata
+unzip inconsolata.tds.zip -d inconsolata
+sudo cp -r inconsolata/* /usr/share/texmf
+echo 'Map zi4.map\n' | sudo tee -a /usr/share/texlive/texmf-dist/web2c/updmap.cfg
+sudo mktexlsr
+yes | sudo updmap-sys --enable Map=zi4.map --syncwithtrees --force
+sudo updmap -sys
+
+sudo yum install -y yum-utils
+sudo yum-config-manager --add-repo https://yum.repos.intel.com/setup/intelproducts.repo
+sudo rpm --import https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
+sudo rm -rf /var/cache/yum/ && yes | sudo yum makecache
+
+sudo yum install -y intel-mkl intel-tbb
+sudo tee /etc/ld.so.conf.d/intel.conf << EOF
+/opt/intel/mkl/lib/intel64
+/opt/intel/lib/intel64
+/opt/intel/tbb/lib/intel64/gcc4.8
+EOF
+sudo ldconfig
+
+export R_VER=3.6.3
+wget https://cran.r-project.org/src/base/R-3/R-$R_VER.tar.gz
+tar zxvf R-$R_VER.tar.gz
+cd R-$R_VER
+export MKLROOT=/opt/intel/compilers_and_libraries/linux
+export LD_LIBRARY_PATH=${MKLROOT}/mkl/lib/intel64
+export MKL="-L${MKLROOT}/mkl/lib/intel64 -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core -fopenmp -lpthread -ldl -lm"
+export CFLAGS="-std=gnu99 -g -O3 -march=native -DU_STATIC_IMPLEMENTATION"
+export CXXFLAGS="-g -O3 -march=native -DU_STATIC_IMPLEMENTATION"
+export CXXSTD=-std=gnu++98
+./configure --prefix=/usr --libdir=/usr/lib64 --with-cairo --with-x=no --enable-R-shlib --enable-shared \
+  --enable-R-profiling --enable-BLAS-shlib --enable-memory-profiling --with-blas="$MKL" \
+  --with-lapack --with-tcl-config=/usr/lib64/tcl8.6/tclConfig.sh \
+  --with-tk-config=/usr/lib64/tkConfig.sh --enable-prebuilt-html
+make -j$(nproc)
+sudo make install
+sudo groupadd ruser
+sudo chown -R root:ruser /usr/lib64/R
+sudo chmod -R g+w /usr/lib64/R
+sudo usermod -a -G ruser jamal
+sudo R CMD javareconf
+sudo tee /usr/lib64/R/etc/Rprofile.site << EOF
+options(bitmapType='cairo')
+local({r <- getOption("repos")
+       r["CRAN"] <- "https://cran.r-project.org"
+       options(repos=r)})
+EOF
+
+sudo chcon -u system_u -r object_r --type=bin_t -R /usr/lib/rstudio-server/bin
+sudo systemctl enable rstudio-server
+sudo systemctl start rstudio-server
+
+D. Installation of Docker
+
+sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+
+sudo dnf install --nobest docker-ce
+sudo systemctl enable docker
+sudo systemctl start docker
+
+sudo firewall-cmd --permanent --zone=trusted --change-interface=docker0
+sudo firewall-cmd --permanent --zone=trusted --add-port=4243/tcp
+sudo firewall-cmd --reload
+
+E. Installation of Intel Parallel Studio
+
+sudo rpm --import https://yum.repos.intel.com/2020/setup/RPM-GPG-KEY-intel-psxe-runtime-2020
+sudo rpm -Uhv https://yum.repos.intel.com/2020/setup/intel-psxe-runtime-2020-reposetup-1-0.noarch.rpm
+sudo yum install intel-psxe-runtime -y
